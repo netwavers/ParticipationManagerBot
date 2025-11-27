@@ -134,7 +134,32 @@ client.on(Events.MessageCreate, message => {
     // !ping
     if (command === '!ping') {
         message.reply('Pong!');
+        return;
     }
+
+    // !help
+    if (command === '!help') {
+        const helpMessage = `
+**コマンド一覧**
+\`!join [名前]\`: 待機リストに参加します。名前を省略するとDiscordの表示名が使用されます。
+\`!leave\`: 待機リストから辞退します。
+\`!list\`: 現在の待機リストを表示します。
+\`!next [人数]\`: 次のセッションを開始し、指定した人数（デフォルト1人）をリストから選出します。
+\`!session\`: 現在進行中のセッションのプレイヤーを表示します。
+\`!finish\`: 現在のセッションを終了します。
+\`!reset\`: 待機リストとセッションをリセットします。
+\`!panel\`: 操作パネルを表示します。
+\`!recruit [募集文]\`: 募集文を設定して操作パネルを表示します。
+\`!help\`: このヘルプを表示します。
+
+**その他の機能**
+- 「参加希望」を含むメッセージ: 待機リストに参加します。
+- 「参加辞退」を含むメッセージ: 待機リストから辞退します。
+`;
+        message.reply(helpMessage);
+        return;
+    }
+
     // !panel
     if (command === '!panel') {
         const queue = gameManager.getQueue();

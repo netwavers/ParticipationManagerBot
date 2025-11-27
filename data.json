@@ -1,5 +1,12 @@
 {
-  "queue": [],
+  "queue": [
+    {
+      "id": "304507118973747200",
+      "name": "かぜまる",
+      "joinedAt": "2025-11-27T07:54:21.985Z",
+      "playCount": 4
+    }
+  ],
   "session": [],
   "history": [
     {
@@ -8,5 +15,6 @@
       "playCount": 4,
       "lastPlayed": "2025-11-27T06:43:31.974Z"
     }
-  ]
+  ],
+  "recruitmentMessage": "探索メンバーを募集します。"
 }
