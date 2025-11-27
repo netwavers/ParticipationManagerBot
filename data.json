@@ -1,19 +1,12 @@
 {
   "queue": [],
-  "session": [
-    {
-      "id": "304507118973747200",
-      "name": "かぜまる",
-      "joinedAt": "2025-11-27T04:38:46.619Z",
-      "playCount": 2
-    }
-  ],
+  "session": [],
   "history": [
     {
       "id": "304507118973747200",
       "name": "かぜまる",
-      "playCount": 2,
-      "lastPlayed": "2025-11-27T04:16:02.506Z"
+      "playCount": 3,
+      "lastPlayed": "2025-11-27T04:45:40.468Z"
     }
   ]
 }
