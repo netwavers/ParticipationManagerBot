@@ -22,6 +22,7 @@ Discord Bot for managing participation queues and sessions, designed to integrat
 | `!finish` | End the current session and update play counts. |
 | `!reset` | Reset the queue and session (History is preserved). |
 | `!ping` | Check if bot is alive. |
+| `!panel` | Show an interactive panel with Join/Leave buttons. |
 
 ### Keywords
 You can also use natural language in any message:

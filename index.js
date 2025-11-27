@@ -1,5 +1,6 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events } = require('discord.js');
+
+const { Client, GatewayIntentBits, Events, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const gameManager = require('./gameManager');
 const api = require('./api');
 
@@ -15,6 +16,7 @@ client.once(Events.ClientReady, c => {
     console.log(`Ready! Logged in as ${c.user.tag}`);
     api.startServer();
 });
+
 
 client.on(Events.MessageCreate, message => {
     if (message.author.bot) return;
@@ -132,6 +134,80 @@ client.on(Events.MessageCreate, message => {
     // !ping
     if (command === '!ping') {
         message.reply('Pong!');
+    }
+    // !panel
+    if (command === '!panel') {
+        const queue = gameManager.getQueue();
+        const session = gameManager.getSession();
+
+        const embed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle('Participation Manager')
+            .setDescription('ボタンを押して操作してください。')
+            .addFields(
+                { name: '待機人数', value: `${queue.length}人`, inline: true },
+                { name: 'セッション中', value: `${session.length}人`, inline: true },
+            )
+            .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('join_queue')
+                    .setLabel('参加')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('leave_queue')
+                    .setLabel('辞退')
+                    .setStyle(ButtonStyle.Danger),
+                new ButtonBuilder()
+                    .setCustomId('refresh_panel')
+                    .setLabel('更新')
+                    .setStyle(ButtonStyle.Secondary),
+            );
+
+        message.channel.send({ embeds: [embed], components: [row] });
+        return;
+    }
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton()) return;
+
+    const { customId } = interaction;
+
+    if (customId === 'join_queue') {
+        let playerName = interaction.member ? interaction.member.displayName : interaction.user.username;
+        const result = gameManager.addPlayer(interaction.user.id, playerName);
+
+        if (result.success) {
+            await interaction.reply({ content: `${playerName} さんを待機リストに追加しました！現在の待ち人数: ${result.queueLength}人`, ephemeral: true });
+        } else {
+            await interaction.reply({ content: result.message, ephemeral: true });
+        }
+    } else if (customId === 'leave_queue') {
+        const result = gameManager.removePlayer(interaction.user.id);
+
+        if (result.success) {
+            await interaction.reply({ content: `${result.name} さんを待機リストから削除しました。残り待ち人数: ${result.queueLength}人`, ephemeral: true });
+        } else {
+            await interaction.reply({ content: result.message, ephemeral: true });
+        }
+    } else if (customId === 'refresh_panel') {
+        const queue = gameManager.getQueue();
+        const session = gameManager.getSession();
+
+        const embed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle('Participation Manager')
+            .setDescription('ボタンを押して操作してください。')
+            .addFields(
+                { name: '待機人数', value: `${queue.length}人`, inline: true },
+                { name: 'セッション中', value: `${session.length}人`, inline: true },
+            )
+            .setTimestamp();
+
+        await interaction.update({ embeds: [embed] });
     }
 });
 
