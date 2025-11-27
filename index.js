@@ -1,0 +1,138 @@
+require('dotenv').config();
+const { Client, GatewayIntentBits, Events } = require('discord.js');
+const gameManager = require('./gameManager');
+const api = require('./api');
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+client.once(Events.ClientReady, c => {
+    console.log(`Ready! Logged in as ${c.user.tag}`);
+    api.startServer();
+});
+
+client.on(Events.MessageCreate, message => {
+    if (message.author.bot) return;
+
+    const content = message.content.trim();
+
+    // Natural Language Join
+    if (content.includes('参加希望')) {
+        let playerName = message.member ? message.member.displayName : message.author.username;
+        const result = gameManager.addPlayer(message.author.id, playerName);
+        if (result.success) {
+            message.reply(`${playerName} さんを待機リストに追加しました！現在の待ち人数: ${result.queueLength}人`);
+        } else {
+            message.reply(result.message);
+        }
+        return;
+    }
+
+    // Natural Language Leave
+    if (content.includes('参加辞退')) {
+        const result = gameManager.removePlayer(message.author.id);
+        if (result.success) {
+            message.reply(`${result.name} さんを待機リストから削除しました。残り待ち人数: ${result.queueLength}人`);
+        } else {
+            message.reply(result.message);
+        }
+        return;
+    }
+
+    const args = content.split(' ');
+    const command = args[0].toLowerCase();
+
+    // !join [name]
+    if (command === '!join') {
+        let playerName = args.slice(1).join(' ');
+        if (!playerName) {
+            playerName = message.member ? message.member.displayName : message.author.username;
+        }
+
+        const result = gameManager.addPlayer(message.author.id, playerName);
+        if (result.success) {
+            message.reply(`${playerName} さんを待機リストに追加しました！現在の待ち人数: ${result.queueLength}人`);
+        } else {
+            message.reply(result.message);
+        }
+        return;
+    }
+
+    // !leave
+    if (command === '!leave') {
+        const result = gameManager.removePlayer(message.author.id);
+        if (result.success) {
+            message.reply(`${result.name} さんを待機リストから削除しました。残り待ち人数: ${result.queueLength}人`);
+        } else {
+            message.reply(result.message);
+        }
+        return;
+    }
+
+    // !list
+    if (command === '!list') {
+        const queue = gameManager.getQueue();
+        if (queue.length === 0) {
+            message.reply('現在の待機人数: 0人');
+            return;
+        }
+        const listStr = queue.map((p, i) => `${i + 1}. ${p.name} (Play Count: ${p.playCount || 0})`).join('\n');
+        message.reply(`現在の待機人数: ${queue.length}人\n\`\`\`\n${listStr}\n\`\`\``);
+        return;
+    }
+
+    // !next [size]
+    if (command === '!next') {
+        const size = parseInt(args[1]) || 1; // Default to 1 if not specified
+        const result = gameManager.pickSession(size);
+        if (result.success) {
+            const names = result.players.map(p => p.name).join(', ');
+            message.reply(`セッションを開始します！選出されたプレイヤー: ${names}`);
+        } else {
+            message.reply(result.message);
+        }
+        return;
+    }
+
+    // !session
+    if (command === '!session') {
+        const session = gameManager.getSession();
+        if (session.length === 0) {
+            message.reply('現在進行中のセッションはありません。');
+            return;
+        }
+        const names = session.map(p => p.name).join(', ');
+        message.reply(`現在のセッション: ${names}`);
+        return;
+    }
+
+    // !finish
+    if (command === '!finish') {
+        const result = gameManager.finishSession();
+        if (result.success) {
+            message.reply('セッションを終了しました。お疲れ様でした！');
+        } else {
+            message.reply(result.message);
+        }
+        return;
+    }
+
+    // !reset
+    if (command === '!reset') {
+        gameManager.reset();
+        message.reply('待機リストとセッションをリセットしました。');
+        return;
+    }
+
+    // !ping
+    if (command === '!ping') {
+        message.reply('Pong!');
+    }
+});
+
+client.login(process.env.DISCORD_TOKEN);
