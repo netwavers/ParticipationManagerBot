@@ -6,13 +6,15 @@ class GameManager {
         this.queue = data.queue || [];
         this.session = data.session || [];
         this.history = data.history || [];
+        this.recruitmentMessage = data.recruitmentMessage || null;
     }
 
     _save() {
         saveData({
             queue: this.queue,
             session: this.session,
-            history: this.history
+            history: this.history,
+            recruitmentMessage: this.recruitmentMessage
         });
     }
 
@@ -107,10 +109,20 @@ class GameManager {
     reset() {
         this.queue = [];
         this.session = [];
+        this.recruitmentMessage = null;
         // History is usually kept, but maybe we want a hard reset?
         // For now, let's just reset queue and session as per original !reset
         this._save();
         return { success: true };
+    }
+
+    setRecruitmentMessage(message) {
+        this.recruitmentMessage = message;
+        this._save();
+    }
+
+    getRecruitmentMessage() {
+        return this.recruitmentMessage;
     }
 }
 

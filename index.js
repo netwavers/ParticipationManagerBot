@@ -143,7 +143,51 @@ client.on(Events.MessageCreate, message => {
         const embed = new EmbedBuilder()
             .setColor(0x0099FF)
             .setTitle('Participation Manager')
-            .setDescription('ボタンを押して操作してください。')
+            .setDescription(gameManager.getRecruitmentMessage() || 'ボタンを押して操作してください。')
+            .addFields(
+                { name: '待機人数', value: `${queue.length}人`, inline: true },
+                { name: 'セッション中', value: `${session.length}人`, inline: true },
+            )
+            .setTimestamp();
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('join_queue')
+                    .setLabel('参加')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('leave_queue')
+                    .setLabel('辞退')
+                    .setStyle(ButtonStyle.Danger),
+                new ButtonBuilder()
+                    .setCustomId('refresh_panel')
+                    .setLabel('更新')
+                    .setStyle(ButtonStyle.Secondary),
+            );
+
+        message.channel.send({ embeds: [embed], components: [row] });
+        return;
+    }
+
+    // !recruit [message]
+    if (command === '!recruit') {
+        const recruitMsg = args.slice(1).join(' ');
+        if (!recruitMsg) {
+            message.reply('募集内容を入力してください。例: `!recruit ランクマ募集 @3`');
+            return;
+        }
+
+        gameManager.setRecruitmentMessage(recruitMsg);
+
+        // Show panel (same logic as !panel)
+        const queue = gameManager.getQueue();
+        const session = gameManager.getSession();
+
+        const embed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle('Participation Manager')
+            .setDescription(recruitMsg)
             .addFields(
                 { name: '待機人数', value: `${queue.length}人`, inline: true },
                 { name: 'セッション中', value: `${session.length}人`, inline: true },
@@ -200,7 +244,7 @@ client.on(Events.InteractionCreate, async interaction => {
         const embed = new EmbedBuilder()
             .setColor(0x0099FF)
             .setTitle('Participation Manager')
-            .setDescription('ボタンを押して操作してください。')
+            .setDescription(gameManager.getRecruitmentMessage() || 'ボタンを押して操作してください。')
             .addFields(
                 { name: '待機人数', value: `${queue.length}人`, inline: true },
                 { name: 'セッション中', value: `${session.length}人`, inline: true },
